@@ -5,6 +5,7 @@ body {
 
 .swim-lanes {
   min-height: 60vh;
+  z-index: 1;
 }
 
 .task-card {
@@ -13,4 +14,12 @@ body {
 
 .task-card:hover {
   cursor: grab;
+}
+
+.card {
+  z-index: 1000;
+}
+
+.swim-lanes {
+  position: relative;
 }

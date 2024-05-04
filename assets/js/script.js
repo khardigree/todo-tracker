@@ -9,6 +9,7 @@
 
 
 // Retrieve tasks and nextId from localStorage
+let task = JSON.parse(localStorage.getItem('tasks')) || [];
 let nextId = parseInt(localStorage.getItem('nextId')) || 1;
 function getTasks() {
     return JSON.parse(localStorage.getItem('tasks')) || [];
@@ -25,8 +26,13 @@ function generateTaskId() {
     let nextId = parseInt(localStorage.getItem("nextId")) || 1;
     localStorage.setItem("nextId", nextId + 1);
     return nextId;
+    console.log('nextId', nextId);
 }
 
+function displayTime() {
+    const rightNow = dayjs().format('MMM DD, YYYY [at] hh:mm:ss a');
+    timeDisplayEl.text(rightNow);
+  }
 
 // Todo: create a function to create a task card
 function createTaskCard(task) {
@@ -53,33 +59,55 @@ function createTaskCard(task) {
     else {
         card.addClass("bg-white");
     }
-    
 
-    // Append cardDueDate and cardCompleteBtn to cardBody
+    $(".card").addClass("draggable-element").draggable({
+        revert: "invalid",
+        stack: ".card"
+    });
+
     cardBody.append(cardDueDate, cardCompleteBtn);
     card.append(cardHeader, cardBody);
     return card;
+
+
+    if (task.dueDate && task.status !== 'done') {
+        let now = dayjs();
+        let taskDueDate = dayjs(project.dueDate, 'DD/MM/YYYY');
+      }
+
+
+    if (now.isSame(taskDueDate, 'day')) {
+        taskCard.addClass('bg-warning text-white');
+      } else if (now.isAfter(taskDueDate)) {
+        taskCard.addClass('bg-danger text-white');
+        cardDeleteBtn.addClass('border-light');
+      }
+    
 }
 
+
+
 // Todo: create a function to render the task list and make cards draggable
-taskList = getTasks();
+
 function renderTaskList() {
     let todoLane = $("#todo-cards");
     let inProgressLane = $("#in-progress-cards");
     let doneLane = $("#done-cards");
+
+    let taskList = getTasks();
 
     todoLane.empty();
     inProgressLane.empty();
     doneLane.empty();
 
     taskList.forEach(task => {
-        let card = createTaskCard(task);
+        let cardBody = createTaskCard(task);
         if (task.status === "todo") { 
-            card.appendTo(todoLane);
+            cardBody.appendTo(todoLane);
         } else if (task.status === "inProgress") {
-            card.appendTo(inProgressLane);
+            cardBody.appendTo(inProgressLane);
         } else if (task.status === "done") {
-            card.appendTo(doneLane);
+            cardBody.appendTo(doneLane);
         }
     });
 
@@ -89,6 +117,7 @@ function renderTaskList() {
         stack: ".card"
     });
 }
+
 // Todo: create a function to handle adding a new task
 function createTask(event) {
     event.preventDefault();
@@ -110,10 +139,12 @@ function createTask(event) {
 // Todo: create a function to handle deleting a task
 function handleDeleteTask(event) {
     let taskId = parseInt($(event.target).closest(".card").attr("data-project-id"));
-    let filteredTasks = taskList.filter(task => task.id !== taskId);
-    taskList = filteredTasks; 
-    saveTasks(); 
-    renderTaskList();
+    let taskIndex = taskList.findIndex(task => task.id === taskId);
+    if (taskIndex !== -1) {
+        taskList.splice(taskIndex, 1);
+        saveTasks();
+        renderTaskList();
+    }
 }
 
 // Todo: create a function to handle dropping a task into a new status lane
@@ -123,11 +154,18 @@ function handleDrop(event, ui) {
     let taskIndex = taskList.findIndex(task => task.id == taskId);
     taskList[taskIndex].status = newStatus;
     localStorage.setItem("tasks", JSON.stringify(taskList));
+    renderTaskList(); 
 }
 
 // Todo: when the page loads, render the task list, add event listeners, make lanes droppable, and make the due date field a date picker
 $(document).ready(function () {
+    $(".card").addClass("draggable-element").draggable({
+        revert: "invalid",
+        stack: ".card"
+    });
     renderTaskList();
+    handleDrop();
+    makeLanesDroppable();
 });
 
 //event listener for modal button
@@ -162,13 +200,19 @@ function handleAddTask(event) {
 projectFormEl.submit(createTask);
 
 // Make lanes droppable
-$(".lane").droppable({
-    accept: ".card",
-    drop: handleDrop
-});
+function makeLanesDroppable() {
+    $('.lane').droppable({
+        accept: '.draggable-element', 
+        drop: handleDrop,
+    });
+}
 
 // Initialize date picker
 var $datepicker = $('#dueDate');
 $datepicker.datepicker({ dateFormat: 'yy-mm-dd' });
 $datepicker.datepicker('setDate', new Date());
 
+$('#taskDueDate').datepicker({
+    changeMonth: true,
+    changeYear: true,
+  });
