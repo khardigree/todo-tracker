@@ -9,6 +9,7 @@
 
 
 // Retrieve tasks and nextId from localStorage
+let nextId = parseInt(localStorage.getItem('nextId')) || 1;
 function getTasks() {
     return JSON.parse(localStorage.getItem('tasks')) || [];
 }
@@ -29,14 +30,15 @@ function generateTaskId() {
 
 // Todo: create a function to create a task card
 function createTaskCard(task) {
+    console.log('task', task);
     let card = $("<div>").addClass("card project-card my-3").attr("data-project-id", task.id);
-    let cardHeader = $("<div>").addClass("card-header h5").text(task.title);
-    let cardBody = $("<div>").addClass("card-body").text(task.description);
+    let cardHeader = $("<div>").addClass("card-header h5").text(task.taskName);
+    let cardBody = $("<div>").addClass("card-body").text(task.taskDescription);
     let cardDueDate = $("<div>").addClass("card-text").text(task.dueDate);
     let cardCompleteBtn = $("<button>").addClass("btn btn-danger delete").text("Complete").attr("data-project-id", task.id); // Fix attribute name
     cardCompleteBtn.on("click", handleDeleteTask);
     let today = dayjs().startOf('day');
-    let dueDate = dayjs(task.dueDate, 'YYYY-MM-DD').startOf('day');
+    let dueDate = dayjs(task.dueDate, 'DD-MM-YYYY').startOf('day');
     let daysDifference = dueDate.diff(today, 'day');
 
     console.log('today', today);
@@ -51,6 +53,7 @@ function createTaskCard(task) {
     else {
         card.addClass("bg-white");
     }
+    
 
     // Append cardDueDate and cardCompleteBtn to cardBody
     cardBody.append(cardDueDate, cardCompleteBtn);
@@ -59,6 +62,7 @@ function createTaskCard(task) {
 }
 
 // Todo: create a function to render the task list and make cards draggable
+taskList = getTasks();
 function renderTaskList() {
     let todoLane = $("#todo-cards");
     let inProgressLane = $("#in-progress-cards");
@@ -70,7 +74,7 @@ function renderTaskList() {
 
     taskList.forEach(task => {
         let card = createTaskCard(task);
-        if (task.status === "todo") {
+        if (task.status === "todo") { 
             card.appendTo(todoLane);
         } else if (task.status === "inProgress") {
             card.appendTo(inProgressLane);
@@ -164,5 +168,7 @@ $(".lane").droppable({
 });
 
 // Initialize date picker
-$("#dueDate").datepicker();
+var $datepicker = $('#dueDate');
+$datepicker.datepicker({ dateFormat: 'yy-mm-dd' });
+$datepicker.datepicker('setDate', new Date());
 
