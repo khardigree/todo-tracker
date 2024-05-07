@@ -6,6 +6,7 @@ body {
 .swim-lanes {
   min-height: 60vh;
   z-index: 1;
+  position: relative;
 }
 
 .task-card {
@@ -18,8 +19,4 @@ body {
 
 .card {
   z-index: 1000;
-}
-
-.swim-lanes {
-  position: relative;
 }
